@@ -1,0 +1,768 @@
+---
+title: "MATH342W Final Project"
+author: "Javendean Naipaul"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+## Abstract
+
+The price of a house or apartment is dependent on various features.  The features that are known to affect the price of a property, are based on location to the built year. Ultimately, predicting the sale price of a house can be beneficial for various reasons. A homeowner might seek to put their property on the market and find a model that predicts the sale price useful because they can understand what their property is worth. At the same, a potential homeowner can use such a model to compare if a listing price is fair or not. This paper focuses on using various features to predict the sale prices of apartments in Queens, NY. More specifically, apartments that are considered condos or co-ops sold from February 2016 and February 2017. The dataset employed in this paper comes from the MLSI website. This paper uses various flavors of Linear Models along with Regression Trees and Random Forests to predict sale prices between 2016 and 2017 for apartments sold in Queens, NY.  Additionally, we use R^2, RMSE, and MSE to access the performance of the employed models. 
+
+## 1 Introduction
+
+Predictive models are approximations of phenomena observed in reality. Predictive models take these observations, find correlations between the prediction target and other phenomena(the features of the model) to describe the prediction target. The goal _**here**_ is to acquire a _useful_ model that can parse through a simplified data set containing features such as square footage of a housing property, number of bedrooms, whether or not pets or allowed, etc, as well as the _missingness_ of these features and the sale price of the corresponding house such that the model acquired can make accurate predictions of sale prices for _out of sample_ observations of the employed features. One might thin the obvious features that may dictate sale price of a house would be square footage, and number of bedrooms but even for houses with the same number of bedrooms and amount of square footage, it is observed that some houses sell for more than others. So, more simply put, the goal is to find the less obvious features that cause houses with similar or the same values for obvious features like square footage and number of bedrooms to be worth more or less, and by how much do the less obvious features affect sales price( _in dollars_ ) of a house, as well as to find how much the obvious features impact sales price ( _in dollars_ ) of a house.
+
+Mathematical modeling aims to describe a complex system given a set of variables or features to produce a single or an array of outputs. In practice, mathematical  is employed in varimodelingous ways (drawings, physical models, computer programs, or mathematical formulas). More specifically, mathematical models are formulas for calculations that attempt to emulate or predict reality using patterns and descriptions from the real world (Dym, 2004).
+
+George Box, a British statistician, has been commonly quoted for his take on mathematical models — “Essentially, all models are wrong, but some are useful” (Box, 1987). In short, Box acknowledges that the oversimplifications and assumptions employed in modeling result in a disconnect from the entire set of features that truly represent a phenomenon. Therefore, models are limited to the factors that present themselves to the person modeling the phenomena. For example, if a person wants to predict the behavior of a complex system, they might use a set amount of variables to model the phenomena but the person will never know if that set of chosen features is just a subset of all the causal variables that determine the behavior of the phenomena. Nevertheless, models do not need to be perfect for them to be useful. Predicting the sale price of a condo or co-op is can be complex; a mathematical model will be an approximation. Though if a model can predict more accurately than humans, then it may deem to be useful.
+
+Stationarity implies that factors or variables with a system are static or constant. For instance, if a hedge fund seeks to predict a stock price in the future, the hedge fund will have to make certain assumptions that do not change over time. Without the stationary assumption, it becomes difficult to model a phenomenon with empirical data because the data might tell you a set of nuances today, but those nuances can completely change tomorrow. Predicting the sale price of a house or property can be considered a non-stationary modeling problem since new factors can be added at any time that could increase or decrease the sale price of a property.
+
+Despite the non-stationarity of predicting the sale price of a condo or coop, the result are promising. A vanilla Linear Model reaches an R^2 of 81%, the Regression Tree manages to achieve an R^2 of 76%, and Random Forest reaches an R^2 of 85%
+
+## 2 The Data
+
+The dataset used came from the MLSI website. Before preprocessing, the dataset contained 2,230 observations and 55 features. Additionally, the dataset represents observations from Queens, NY that are worth less than 1M\$. The dataset has a large amount of missing data that will have to be imputed or removed. Due to a large amount of missing data, more data could substantially benefit the performance of the models. It is important to keep in mind that we are modeling condos and co-ops that are worth less than 1M\$. Therefore, attempting to predict for a property that is worth above 1M\$ will result in extrapolation. There are a few outliers in the dataset that are removed when preprocessing is applied. 
+
+### 2.2 Featurization
+
+There were many features included in the data set which were not useful in modelling sales price. After cleaning and splitting the data, there was a total of 423 observations in the training and 105 observations in the test set.  The resulting set of features before the train test split consist of:
+        - approx_year_built: The approximate year the property was built. Continuous feature with mean 1962. 
+        -  cats_allowed: Are cats allowed in the property. Mode of 0. 285 no cats and 243 yes cats. 
+        - common_charges: additional charges after purchase. Mean of 576.2
+        - coop_condo: Is the property a condo or a coop. Mode is coop with 399 observations being coops.
+        - date_of_sale: the date when the property was sold
+        - dining_room_type: The type of dining room that's within the property. Mode is combo  
+        - dogs_allowed: Are dogs allowed in the property. Mode is no dogs allowed
+        - fuel_type: The type of fuel in the property. Oil or gas. Mode is gas
+        - maintenance_cost: The cost to maintain the property. Mean is 799.6
+        - num_bedrooms: Number of bedrooms within the property. Mode is 1 bedroom
+        - num_floors_in_building: If the property is in a building, how many floors does the building have? Mode is 7 floors
+        - num_full_bathrooms: the number of full bathrooms the property has. Mode is 1. 
+        - num_total_rooms: total number of rooms the property has. Included bathrooms and bedrooms. Mode is 4
+        - parking_charges: The parking charges for the property. Mean is 43.36
+        - pct_tax_deductibl: Tax deductable. Mean is 43.36
+        - sq_footage: Square footage for the entire property. Mean is 904.0
+        - total_taxes: The taxes for the purchase of the property. Mean 2470
+        - walk_score: How close is the property to other points of interest (school, grocery shops, etc.). Mean is 83.1 
+        - zip: Zip code of the property. The mode is North Queens
+
+### 2.3 Errors and Missingness
+
+The dataset contains various missing values. The percentage of missing values are listed below.
+- approx_year_built: 1.79% missing
+-  cats_allowed: No missing values
+- common_charges:  75% missing
+- coop_condo: No missing values
+- date_of_sale: 76% missing
+- dining_room_type: 20% missing      
+- dogs_allowed: No missing values
+- fuel_type: 5% missing 
+- maintenance_cost: 27% missing
+- num_bedrooms: 5% missing
+- num_floors_in_building: 29% missing
+- num_full_bathrooms: None missing 
+- num_total_rooms: 0.08% missing
+- parking_charges: 74% missing 
+- pct_tax_deductibl: 78% missing
+- sq_footage:54% missing
+- total_taxes: 73% missing
+- walk_score: No missing values
+- zip: 4% missing
+            
+To handle the missingness in the data, the missForest package was employed to impute the missing values. After each missing value was imputed, the observations that did not contain a response variable were dropped. No missingness dummy variables were used in the design matrix. 
+
+## 3 Modeling
+
+### 3.1 Regression Tree Modeling
+
+The most important features are:
+            - sq_footage: This is consistent with reality because we know that in most cases the more square footage the higher the price. Therefore, there is a linear correlation in most of the cases except if you live in a popular city. 
+            - Coop or Condo: Coop and condo can be important because there might be a correlation between coop and condo with the sale price and square footage. A condo could have more square footage when compared to a coop.
+            - Number of full bathrooms: More bathrooms could mean larger property sizes. Therefore, it makes sense that more full bathrooms yield to a correlation with sale price.
+            - Parking Charges: If you live in a more expensive area you can expect that parking charges are higher compared to a cheaper place since in a more expensive place the price per square footage is higher. 
+            - Number of Floors in Building: The more floors in teh bulding the more expensive since living is skyscrapers could make property more expensive. Larger buildings are more expensive to maintain so there might be a correlation between building floors and sale price. 
+
+### 3.2 Linear Modeling
+After fitting a vanilla OLS linear model, the in-sample errors are the following:
+            - SSE: 2.5314
+            - MSE: 6265871211
+            - RMSE: 79157.26
+            - Rsq: 81.3%
+The in-sample errors demonstrate that the model is doing very bad but there is a lot of room for improvement. If there was more data and perhaps more meaningful features, then the linear model could do better. The features that have the highest coefficients are square footage and the number of full bathrooms. This is coherent with our understanding of property prices since the more space in an apartment the higher the price. 
+
+### 3.3 Random Forest Modeling
+This should be the model of choice because we cannot guarantee that our data is linear. If the data was linear that OLS would be the adequate choice. When analyzing the OOB metrics, Random Forest naturally does better than the Linear Model due to the non-linear nature of the dataset. Random forest should be more flexible in describing more complex functions when compared to OLS. OLS is restricted to learning functions that are linear. For that reason, the resulting Random Forest model is parametric. What we gain from using Random Forest is the benefit of better performance (with respect to Rsq in this case). The downside of Random Forest is that we lose the interpretability that OLS or any other linear model provides. The variables that have an effect on sale price are zip code and square footage. The price of a house can be highly dependent on the location and the size of the property. The optimal hyperparameters found with mlr where:
+            - num_trees: 232
+            - mtry: 7
+            - nodesize: 9
+
+## 4. Performance Results for your Random Forest Model
+
+After doing hyper parameter tuning on the random forest model, it was found that that num_trees: 232, mtry: 7, and node size: 9 are the hyperparameters that result in the best performance. The results for OOB goodness-of-fit metrics are Rsq of 76.231% and RMSE of 87368.22. This is an okay performance but it could certainly increase if more data was added to the design matrix. For the Rsq and RMSE for the test set, I get an Rsq of 77% and an RMSE of 97205. This shows that the model is not overfitting since the errors in and out of the sample are similar. 
+
+## 5. Discussion
+
+In this paper, we predicted the sale price of condos and coops found in Queens, NY. The data we used was from 2016 to 2017 and it was collected from the MLSI website. Altogether, 19 features were used to predict the sale prices in the dataset. Although the 19 features were able to do a decent job at predict sale prices, there are a few extensions that could result in better performance. First, having more data could provide a better representation of the properties found in Queens, NY. Secondly, feature engineering could be used to create more useful features. For example, calculating the distance between the property and points of interest such as airports, hospitals, or larger cities could be a covariant that is dependent on the sale price. Nevertheless, the models employed are adequate for the modeling task. OLS and Random Forest can serve as baselines for further exploration. In conclusion, the models built in this study might not beat the predictions found on websites such as Zillow. Therefore, the models are not production-ready and could benefit from more data and more features.
+
+## Bibliography
+Box, G. E., & Draper, N. R. (1987). Empirical model-building and response surfaces. John Wiley & Sons.
+
+Dym, C. (2004). Principles of Mathematical Modeling. Netherlands: Elsevier Science.
+   
+
+```{r}
+set.seed(27)
+pacman::p_load(tidyverse, magrittr, data.table, ggplot2, lubridate, R.utils, skimr, missForest, mlr, qdapRegex)
+```
+
+
+```{r}
+configureMlr(show.info = FALSE, show.learner.output = FALSE, on.learner.warning = "quiet")
+```
+
+
+```{r}
+if (!pacman::p_isinstalled(YARF)){
+  pacman::p_install_gh("kapelner/YARF/YARFJARs", ref = "dev")
+  pacman::p_install_gh("kapelner/YARF/YARF", ref = "dev", force = TRUE)
+}
+options(java.parameters = "-Xmx4000m")
+pacman::p_load(YARF)
+```
+
+## Load Dataset
+
+```{r}
+PATH_TO_CSV = "C:\\Users\\javen\\Downloads\\HOUSING_DATA-MATH-342W.csv"
+housing = fread(PATH_TO_CSV)
+colnames(housing)
+```
+
+## Remove Columns Related To Amazon MTURK
+
+```{r}
+housing <- housing %>%
+  select(-HITId, -HITTypeId, -Title, -Description, -Keywords, -Reward, -MaxAssignments, -RequesterAnnotation, -AssignmentDurationInSeconds, -AutoApprovalDelayInSeconds, -NumberOfSimilarHITs, -LifetimeInSeconds, -RejectionTime, -RequesterFeedback, -URL, -url, -WorkTimeInSeconds, -WorkerId, -SubmitTime, -LifetimeApprovalRate, -Last7DaysApprovalRate, -Last30DaysApprovalRate, -Expiration, -CreationTime, -AutoApprovalTime, -AssignmentStatus, -AssignmentId, -ApprovalTime, -AcceptTime)
+```
+
+
+```{r}
+colnames(housing)
+```
+
+## Visualize Missingness
+
+```{r}
+M <- housing %>%
+  gather(key = "key", value = "val") %>%
+  mutate(is.missing = is.na(val)) %>%
+  group_by(key, is.missing) %>%
+  summarise(num.missing = n()) %>%
+  filter(is.missing==TRUE) %>%
+  select(-is.missing) %>%
+  arrange(desc(num.missing))
+  
+M %>% ggplot() +
+  geom_bar(aes(x=key, y=num.missing), stat = 'identity') +
+  labs(x='Feature', y = "# Missing Values", title='Number of missing values') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_flip()
+```
+
+# Helper Functions
+
+```{r}
+get_zip = function(x) {
+  pot_zips = unlist(rm_zip(x, extract=TRUE))
+  
+  return(pot_zips[length(pot_zips)])
+}
+
+remove_money_sign = function(x) {
+  x <- x %>% str_remove("\\$") %>% str_remove(",")
+  
+  return(x)
+}
+
+categorize_zip = function(x) {
+  category = ""
+  if (is.element(x, NE)) {
+    category = "NE"
+  } else if (is.element(x, N)) {
+    category = "N"
+  } else if (is.element(x, C)) {
+    category = "C"
+  } else if (is.element(x, J)) {
+    category = "J"
+  } else if (is.element(x, NE)) {
+    category = "NE"
+  } else if (is.element(x, WC)) {
+    category = "WC"
+  } else if (is.element(x, NE)) {
+    category = "NE"
+  } else if (is.element(x, WC)) {
+    category = "WC"
+  } else if (is.element(x, SE)) {
+    category = "SE"
+  } else if (is.element(x, SW)) {
+    category = "SW"
+  } else if (is.element(x, W)) {
+    category = "W"
+  } else {
+    return(NA)
+  } 
+  
+  return(as.factor(category))
+}
+
+categorize_kitchen <- function(x) {
+  
+  if (is.na(x)) {
+    return(NA)
+  }
+  
+  category = ""
+  if (x == "eat in" | x == "eatin" | x == "Eat In" | x == "Eat in") {
+    category = "Eat in? (Yes/No)"
+  } else if ( x == "efficiency" | x == "efficiency kitchene" | x == "efficiency kitchen" | x == "efficiemcy" | x == "efficiency ktchen") {
+    category = "Efficiency"
+  } else if (x == "Combo" | x == "combo") {
+    category = "C"
+  } else {
+    return(NA)
+  }
+  
+  return(as.factor(category))
+}
+
+```
+
+## Extract Zip Code from Address
+```{r}
+NE = c(11361, 11362, 11363, 11364)
+N = c(11354, 11355, 11356, 11357, 11358, 11359, 11360)
+C = c(11365, 11366, 11367)
+J = c(11412, 11423, 11432, 11433, 11434, 11435, 11436)
+NW = c(11101, 11102, 11103, 11104, 11105, 11106)
+WC = c(11374, 11375, 11379, 11385)
+SE = c(11004, 11005, 11411, 11413, 11422, 11426, 11427, 11428, 11429)
+SW = c(11414, 11415, 11416, 11417, 11418, 11419, 11420, 11421)
+W = c(11368, 11369, 11370, 11372, 11373, 11377, 11378)
+```
+
+
+```{r}
+housing <- housing %>%
+  rowwise() %>%
+  mutate(zip = categorize_zip(as.numeric(get_zip(full_address_or_zip_code))))
+```
+
+```{r}
+housing <- housing %>% 
+  select(-model_type, -full_address_or_zip_code)#duplicate data
+housing
+```
+
+
+## Change Monetary Values to Numerics
+
+```{r}
+housing <- housing %>%
+  mutate(common_charges = as.numeric(remove_money_sign(common_charges)), 
+         maintenance_cost = as.numeric(remove_money_sign(maintenance_cost)), 
+         parking_charges = as.numeric(remove_money_sign(parking_charges)), 
+         sale_price = as.numeric(remove_money_sign(sale_price)), 
+         total_taxes = as.numeric(remove_money_sign(total_taxes))) %>%
+  select(-listing_price_to_nearest_1000)
+```
+
+### Relationship Between Square Footage and Sale Price
+
+```{r}
+housing %>% ggplot() + 
+  geom_point(aes(x = sale_price, y = sq_footage)) +
+  labs(x = "Sale Price", y = "Square Footage", title='Square Feet vs. Sale Price') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Pets: Cats and Dogs Allowed
+
+```{r}
+housing <- housing %>%
+  mutate(cats_allowed = as.factor(ifelse(cats_allowed == "yes" | cats_allowed == "y", 1, 0)), 
+         dogs_allowed = as.factor(ifelse(dogs_allowed == "yes" | dogs_allowed == "y", 1, 0)))
+```
+
+```{r}
+housing %>% 
+  ggplot() +
+  geom_histogram(aes(x = cats_allowed), stat = "count") +
+  labs(x = 'Cats Allowed', y = "Count", title='Cats Allowed') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+housing %>% 
+  ggplot() +
+  geom_histogram(aes(x = dogs_allowed), stat = "count", position = position_dodge(0.8)) +
+  labs(x = 'Dogs Allowed', y = "Count", title='Dogs Allowed') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Coop or Condo
+
+```{r}
+housing <- housing %>%
+  mutate(coop_condo = as.factor(coop_condo))
+```
+
+## Dinning Room Type
+
+```{r}
+housing <- housing %>%
+  mutate(dining_room_type = as.factor(ifelse(dining_room_type == "dining area" | dining_room_type == "none", "other", dining_room_type)))
+```
+
+```{r}
+housing %>% 
+  ggplot() +
+  geom_histogram(aes(x = dining_room_type), stat = "count") +
+  labs(x = 'Dining Room Type', y = "Count", title = 'Dining Roop Type') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Garage Exists
+
+```{r}
+housing %>% 
+  ggplot() +
+  geom_histogram(aes(x = garage_exists), stat = "count") +
+  labs(x = 'Garage Exists', y = "Count", title = 'garage Exists') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+housing <- housing %>%
+  select(-garage_exists)
+```
+
+## Fuel Type
+
+```{r}
+housing %>%
+  ggplot() +
+  geom_histogram(aes(x = fuel_type), stat = "count") +
+  labs(x = 'Fuel Type', y = "Count", title = 'Fuel Type') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+housing <- housing %>%
+  mutate(fuel_type = as.factor(ifelse(fuel_type == "gas" | fuel_type == "oil", fuel_type, "other")))
+```
+
+```{r}
+housing %>%
+  ggplot() +
+  geom_histogram(aes(x = fuel_type), stat = "count") +
+  labs(x = 'Fuel Type', y = "Count", title = 'Fuel Type') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## Date of Sale
+
+```{r}
+housing <- housing %>%
+  mutate(date_of_sale = as.numeric(as.POSIXct(date_of_sale, format="%m/%d/%Y")))
+```
+
+## Kitchen Type
+
+```{r}
+housing %>%
+  ggplot() +
+  geom_histogram(aes(x = kitchen_type), stat = "count") +
+  labs(x = 'Kitchen Type', y = "Count", title = 'Kitchen Type') +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+housing <- housing %>%
+  rowwise() %>%
+  mutate(kitchen_type = categorize_kitchen(kitchen_type)) %>%
+  select(-kitchen_type)
+```
+
+## Number of Bedrooms
+
+```{r}
+housing %>%
+  ggplot() +
+  geom_histogram(aes(x = as.factor(num_bedrooms)), stat = "count") +
+  labs(x = 'Number Of Bedrooms', y = "Count", title = 'Number of Bedrooms')
+```
+
+```{r}
+housing <- housing %>%
+  mutate(num_bedrooms = as.integer(num_bedrooms))
+```
+
+## Number of floors in building
+
+```{r}
+housing <- housing %>%
+  mutate(num_floors_in_building = as.integer(num_floors_in_building))
+```
+
+## District Number
+
+```{r}
+housing <- housing  %>%
+  select(-community_district_num)
+```
+
+## Total Numbers
+
+```{r}
+housing <- housing %>%
+  mutate(num_total_rooms = as.integer(num_total_rooms), num_floors_in_building = as.integer(num_floors_in_building), num_bedrooms = as.integer(num_bedrooms)) 
+```
+
+
+## Vizualizing Missingness
+
+```{r}
+y <- housing$sale_price
+X <- housing %>% select(-sale_price)
+```
+
+
+```{r}
+M = as_tibble(apply(is.na(X), 2, as.numeric))
+colnames(M) = paste("is_missing_", colnames(X), sep = "")
+M %<>% 
+  select_if(function(x){sum(x) > 0})
+skim(M)
+ ```
+
+
+```{r}
+M = tbl_df(t(unique(t(M))))
+skim(M)
+```
+## Imputting with MissForest
+
+```{r}
+Ximp = missForest(data.frame(X), sampsize = rep(350, ncol(X)))$ximp
+```
+
+## Train Test Split
+
+```{r}
+X_new = data.frame(Ximp, y) %>% drop_na()
+
+X = X_new %>% select(-y) 
+y = X_new$y
+
+n = nrow(X)
+
+K = 5
+test_indices = sample(1 : n, 1  / K * n) 
+train_indices = setdiff(1 : n, test_indices) 
+
+X_train = X[train_indices, ] 
+y_train = y[train_indices] 
+X_test = X[test_indices, ] 
+y_test = y[test_indices]
+
+dim(X_train)
+dim(X_test)
+length(y_train)
+length(y_test)
+```
+
+
+```{r}
+summary(X_new)
+```
+
+
+## Vanilla OLS
+
+```{r}
+vanilla_ols = lm(y_train ~ ., X_train)
+```
+
+
+```{r}
+y_hat_train = predict(vanilla_ols, X_train)
+e_train = y_train - y_hat_train
+SSE = t(e_train) %*% e_train
+MSE = 1 / (nrow(X_train) - ncol(X_train)) * SSE
+RMSE = sqrt(MSE) 
+
+SSE 
+MSE 
+RMSE
+```
+
+
+```{r}
+s_sq_y = var(y_train)
+n = length(e_train)
+SST = (n - 1) * s_sq_y
+Rsq = 1 - SSE / SST
+Rsq
+```
+
+
+```{r}
+y_hat = predict(vanilla_ols, X_test)
+e = y_test - y_hat
+SSE = t(e) %*% e
+MSE = 1 / (nrow(X_test) - ncol(X_test)) * SSE
+RMSE = sqrt(MSE) 
+
+SSE 
+MSE 
+RMSE
+```
+
+
+```{r}
+s_sq_y = var(y_test)
+n = length(e)
+SST = (n - 1) * s_sq_y
+Rsq = 1 - SSE / SST
+Rsq
+```
+```{r}
+vanilla_ols$coefficients
+```
+
+
+```{r}
+summary(vanilla_ols)
+```
+
+
+## OLS Model Selection
+
+```{r}
+Xy_train = data.frame(X_new)
+```
+
+```{r}
+all_model_formulas = list(
+  "y ~ .",
+  "y ~ . * .",
+ "log(y) ~ ."
+)
+```
+
+
+```{r}
+modeling_task = makeRegrTask(data = Xy_train, target = "y")
+```
+
+```{r}
+makeRLearner.regr.custom_ols = function() {
+  makeRLearnerRegr(
+    cl = "regr.custom_ols",
+    package = "base",
+    par.set = makeParamSet(
+      makeDiscreteLearnerParam(id = "formula", default = all_model_formulas[[1]], values = all_model_formulas)
+    ),
+    properties = c("numerics", "factors", "ordered"),
+    name = "Custom OLS with a Formula",
+    short.name = "custom_ols"
+  )
+}
+
+trainLearner.regr.custom_ols = function(.learner, .task, .subset, .weights = NULL, ...){
+  lm(list(...)$formula, data = getTaskData(.task, .subset))
+}
+
+predictLearner.regr.custom_ols = function (.learner, .model, .newdata, ...){
+    predict(.model$learner.model, newdata = .newdata, ...)
+}
+registerS3method("makeRLearner", "regr.custom_ols", makeRLearner.regr.custom_ols)
+registerS3method("trainLearner", "regr.custom_ols", trainLearner.regr.custom_ols)
+registerS3method("predictLearner", "regr.custom_ols", predictLearner.regr.custom_ols)
+```
+
+
+```{r}
+Kinner = 5
+all_model_param_set = makeParamSet(
+  makeDiscreteParam(id = "formula", default = all_model_formulas[[1]], values = all_model_formulas)
+)
+
+inner_loop = makeResampleDesc("CV", iters = Kinner)
+lrn = makeTuneWrapper("regr.custom_ols", 
+        resampling = inner_loop, 
+        par.set = all_model_param_set, 
+        control = makeTuneControlGrid(), 
+        measures = list(rmse, rsq))
+```
+
+
+```{r}
+Kouter = 10
+outer_loop = makeResampleDesc("CV", iters = Kouter)
+r = resample(lrn, modeling_task, resampling = outer_loop, extract = getTuneResult, measures = list(rmse, rsq), show.info = FALSE)
+```
+
+
+```{r}
+g = which.min(r$measures.test$rsq)  #the model selected by the cross fold validation
+r$extract[[g]]
+```
+
+## Fitting Regression Tree Modeling
+
+```{r}
+nodesizes_to_try = 50 : 1
+in_sample_errors = array(NA, length(nodesizes_to_try))
+oos_errors = array(NA, length(nodesizes_to_try))
+
+for (i in 1 : length(nodesizes_to_try)) {
+  tree_mod = YARF(data.frame(x = X_train), y_train, nodesize = nodesizes_to_try[i], calculate_oob_error = FALSE, verbose = FALSE)
+  yhat = predict(tree_mod, data.frame(x = X_train))
+  in_sample_errors[i] = sd(y_train - yhat)
+  yhat = predict(tree_mod, data.frame(x = X_test))
+  oos_errors[i] = sd(y_test - yhat)
+}
+```
+
+
+```{r}
+ggplot(data.frame(nodesize = nodesizes_to_try, in_sample_errors = in_sample_errors, oos_errors = oos_errors)) + 
+  geom_point(aes(nodesize, in_sample_errors), col = "red") +
+  geom_point(aes(nodesize, oos_errors), col = "blue") + 
+  scale_x_reverse()
+```
+
+
+```{r}
+min(oos_errors)
+which.min(oos_errors)
+```
+
+
+```{r}
+YARF_update_with_oob_results(tree_mod)
+```
+
+## Random Forest Modeling
+
+```{r}
+trainTask = makeRegrTask(data = data.frame(X = X_train, y = y_train), target = "y")
+testTask = makeRegrTask(data = data.frame(X = X_test, y = y_test), target = "y")
+```
+
+
+```{r}
+rf = makeLearner("regr.randomForest", predict.type = "response", par.vals = list(ntree = 20, mtry = 3))
+```
+
+
+```{r}
+rf_param = makeParamSet(
+  makeIntegerParam("ntree", lower = 10, upper = 500),
+  makeIntegerParam("mtry", lower = 1, upper = 13),#upper = num of features/2
+  makeIntegerParam("nodesize", lower = 1, upper = 50))
+```
+
+
+```{r}
+rancontrol = makeTuneControlRandom(maxit = 50L)
+```
+
+
+```{r}
+set_cv = makeResampleDesc("CV", iters = 4L)
+```
+
+
+```{r}
+rf_tune = tuneParams(learner = rf, resampling = set_cv, task = trainTask, par.set = rf_param, control = rancontrol, measures = list(rmse, rsq))
+```
+
+
+```{r}
+rf.tree  = setHyperPars(rf, par.vals = rf_tune$x)
+```
+
+
+```{r}
+rforest = train(rf.tree, trainTask)
+```
+
+
+```{r}
+rforest$learner.model$importance
+```
+
+```{r}
+rfmodel = predict(rforest, testTask)
+```
+
+```{r}
+rf_e = rfmodel$data %>%
+  mutate(e = truth - response) %>%
+  select(e) 
+SSE = t(rf_e$e) %*% rf_e$e
+MSE = 1 / (nrow(X_test) - ncol(X_test)) * SSE
+RMSE = sqrt(MSE) 
+
+SSE 
+MSE 
+RMSE
+```
+
+```{r}
+s_sq_y = var(y_test)
+n = length(rf_e$e)
+SST = (n - 1) * s_sq_y
+Rsq = 1 - SSE / SST
+Rsq
+```
+```{r}
+rf.tree
+```
+
+
+```{r}
+gold_tree = YARF(X = X_train, y = y_train, num_trees = 232, mtry = 7, nodesize = 9, seed = 27)
+```
+
+```{r}
+gold_tree
+```
+
+```{r}
+y_hat = predict(gold_tree, X_test)
+e = y_test - y_hat
+SSE = t(e) %*% e
+MSE = 1 / (nrow(X_test) - ncol(X_test)) * SSE
+RMSE = sqrt(MSE) 
+
+SSE 
+MSE 
+RMSE
+```
+
+
+```{r}
+s_sq_y = var(y_test)
+n = length(e)
+SST = (n - 1) * s_sq_y
+Rsq = 1 - SSE / SST
+Rsq
+```
+
+
+
